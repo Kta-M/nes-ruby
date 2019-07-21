@@ -1,0 +1,19 @@
+# 日本語のコメントを許可する
+Style/AsciiComments:
+  Enabled: false
+
+# メソッドの最大行数
+Metrics/MethodLength:
+  Max: 50
+
+# 1行の最大文字数
+Metrics/LineLength:
+  Max: 100
+
+# ABCサイズ最大値
+Metrics/AbcSize:
+  Max: 25
+
+# rescueの前の空行を許可
+Layout/EmptyLinesAroundExceptionHandlingKeywords:
+  Enabled: false
