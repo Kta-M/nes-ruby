@@ -2,6 +2,10 @@
 Style/AsciiComments:
   Enabled: false
 
+# Gemfileをアルファベット順に記述しなくてもよい
+Bundler/OrderedGems:
+  Enabled: false
+
 # メソッドの最大行数
 Metrics/MethodLength:
   Max: 50
