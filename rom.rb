@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'logger'
+require 'pry'
 
 # ROMのクラス
 class Rom
@@ -44,7 +45,6 @@ class Rom
     attr_reader :header_prefix
     attr_reader :prg_rom_page_size
     attr_reader :chr_rom_page_size
-    attr_reader :prg_ram_page_size
 
     def initialize(binary, logger)
       @logger = logger
@@ -57,7 +57,6 @@ class Rom
       # 各サイズ取得
       @prg_rom_page_size = binary[4].ord.to_i
       @chr_rom_page_size = binary[5].ord.to_i
-      @prg_ram_page_size = binary[8].ord.to_i
     end
   end
 
@@ -90,6 +89,22 @@ class Rom
       @rom_size = CHR_ROM_UNIT * page_size
       @rom_data = binary[data_pos, @rom_size]
       logger.info("CHR_ROM_SIZE : #{@rom_size} bytes")
+    end
+
+    # スプライトを取得
+    def sprite(index, width: 8, height: 8)
+      # スプライトのサイズ[byte](1ピクセルあたり2bit)
+      sprite_size = (width * height) * 2 / 8
+      # スプライトのデータ位置
+      sprite_pos = 0x0010 * index
+      # スプライトのデータ
+      sprite_data = @rom_data[sprite_pos, sprite_size]
+
+      height.times.map do |col|
+        upper_bits = sprite_data[col].ord.split('').format('%08b')
+        lower_bits = sprite_data[col + height].ord.split('').format('%08b')
+        upper_bits.zip(lower_bits).map { |a| a.join.to_i(2) }
+      end
     end
   end
 end
