@@ -21,3 +21,11 @@ Metrics/AbcSize:
 # rescueの前の空行を許可
 Layout/EmptyLinesAroundExceptionHandlingKeywords:
   Enabled: false
+
+# 明示的にselfを書くのを許可
+Style/RedundantSelf:
+  Enabled: false
+
+# 複数行のハッシュを書くときはvalueの先頭を揃える
+Layout/AlignHash:
+  EnforcedColonStyle: "table"
