@@ -67,12 +67,15 @@ class Rom
     PRG_ROM_UNIT = 0x4000
 
     attr_reader :rom_size
-    attr_reader :rom_data
 
     def initialize(binary, data_pos, page_size, logger)
       @rom_size = PRG_ROM_UNIT * page_size
       @rom_data = binary[data_pos, @rom_size]
       logger.info("PRG_ROM_SIZE : #{@rom_size} bytes")
+    end
+
+    def read(addr)
+      @rom_data[addr].ord
     end
   end
 
@@ -83,7 +86,6 @@ class Rom
     CHR_ROM_UNIT = 0x2000
 
     attr_reader :rom_size
-    attr_reader :rom_data
 
     def initialize(binary, data_pos, page_size, logger)
       @rom_size = CHR_ROM_UNIT * page_size
