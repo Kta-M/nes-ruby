@@ -48,24 +48,8 @@ class Cpu
     self.reset
   end
 
-  def read(addr)
-    @bus.read(addr, 1)
-  end
-
-  def read_word(addr)
-    @bus.read(addr, 2)
-  end
-
-  def write(addr, data)
-    @bus.write(addr, data, 1)
-  end
-
-  def write_word(addr, data)
-    @bus.write(addr, data, 2)
-  end
-
   def fetch
-    opecode = self.read(@registers[:PC])
+    opecode = @bus.read(@registers[:PC])
     @registers[:PC] += 1
     opecode
   end
@@ -78,6 +62,6 @@ class Cpu
 
   # リセット
   def reset
-    @registers[:PC] = self.read_word(0xFFFC)
+    @registers[:PC] = @bus.read_word(0xFFFC)
   end
 end
