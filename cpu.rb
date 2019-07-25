@@ -2,6 +2,7 @@
 
 require 'logger'
 require './cpu_bus'
+require './cpu_consts'
 
 # CPUクラス
 class Cpu
