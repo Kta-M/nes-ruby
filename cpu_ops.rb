@@ -247,20 +247,20 @@ class Cpu
   # ロード
   # LDA (Load A from M)  M -> A
   def exec_LDA(operand, mode)
-    __exec_LD(:A, operand, mode)
+    __exec_LD_(:A, operand, mode)
   end
 
   # LDX (Load X from M)  M -> X
   def exec_LDX(operand, mode)
-    __exec_LD(:X, operand, mode)
+    __exec_LD_(:X, operand, mode)
   end
 
   # LDY (Load Y from M)  M -> Y
   def exec_LDY(operand, mode)
-    __exec_LD(:Y, operand, mode)
+    __exec_LD_(:Y, operand, mode)
   end
 
-  def __exec_LD(type, operand, mode)
+  def __exec_LD_(type, operand, mode)
     @registers[type] = (mode == 'immediate' ? operand : @bus.read(operand))
     update_status_register_ng(@registers[type])
   end
@@ -269,20 +269,20 @@ class Cpu
   # ストア
   # STA (Store A to M)  A -> M
   def exec_STA(operand, _mode)
-    __exec_ST(:A, operand)
+    __exec_ST_(:A, operand)
   end
 
   # STX (Store X to M)  X -> M
   def exec_STX(operand, _mode)
-    __exec_ST(:X, operand)
+    __exec_ST_(:X, operand)
   end
 
   # STY (Store Y to M)  Y -> M
   def exec_STY(operand, _mode)
-    __exec_ST(:Y, operand)
+    __exec_ST_(:Y, operand)
   end
 
-  def __exec_ST(type, operand)
+  def __exec_ST_(type, operand)
     @bus.write(operand, @registers[type])
   end
 
