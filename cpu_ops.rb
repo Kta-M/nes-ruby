@@ -197,8 +197,10 @@ class Cpu
   #----------------------------------------------------------------------------
   # ジャンプ
   # JMP (Jump to new location)
-  # ADDR -> PC
-  # flags: none
+  def exec_JMP(operand, _mode)
+    @registers[:PC] = operand
+  end
+
   # JSR (Jump to new location saving return address)
   # ADDR -> PC
   # サブルーチンへジャンプします。
