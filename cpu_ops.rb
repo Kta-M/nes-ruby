@@ -204,8 +204,12 @@ class Cpu
   # JSR (Jump to new location saving return address)
   # ADDR -> PC
   # サブルーチンへジャンプします。
-  # まずジャンプ先のアドレスをアドレス指定によって取得した後、 PCを上位バイト、下位バイトの順にスタックへプッシュします。 このときのPCはトラップの項にもあるようにJSRの最後のバイトアドレスです。 最後にジャンプ先へジャンプします。
+  # まずジャンプ先のアドレスをアドレス指定によって取得した後、
+  # PCを上位バイト、下位バイトの順にスタックへプッシュします。
+  # このときのPCはトラップの項にもあるようにJSRの最後のバイトアドレスです。
+  # 最後にジャンプ先へジャンプします。
   # flags: none
+
   # RTS (Return from Subroutine)
   # サブルーチンから復帰します。
   # 復帰アドレスをスタックから、下位バイト、 上位バイトの順にポップしたのちインクリメントします。
@@ -254,12 +258,12 @@ class Cpu
   end
 
   def __exec_IN_(type)
-    @registers[type] = (@registers[type] + 1) & 0xFF;
+    @registers[type] = (@registers[type] + 1) & 0xFF
     update_status_register_ng(@registers[type])
   end
 
   def __exec_DE_(type)
-    @registers[type] = (@registers[type] - 1) & 0xFF;
+    @registers[type] = (@registers[type] - 1) & 0xFF
     update_status_register_ng(@registers[type])
   end
 
