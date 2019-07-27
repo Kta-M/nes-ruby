@@ -36,13 +36,13 @@ class Cpu
     opcode = fetch
     param = Cpu::OP_PARAMS[opcode]
     if param.nil? || param[:op].nil?
-      raise "Invalid opcode : #{format('%0x04X', opcode)}"
+      raise "Invalid opcode : #{format('0x%04X', opcode)}"
     end
 
     operand = fetch_operand(param[:mode])
     exec(param[:op], operand, param[:mode])
 
-    @logger.debug("opcode: #{format('%0x04X', opcode)}, operand: #{operand}, param: #{param}")
+    @logger.debug("opcode: #{format('0x%04X', opcode)}, operand: #{operand}, param: #{param}")
   end
 
   # リセット
