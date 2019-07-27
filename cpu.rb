@@ -173,7 +173,7 @@ class Cpu
   # 一つの命令を実行
   def exec(opname, operand, mode)
     method = "exec_#{opname}"
-    unless self.respond_to?(method)
+    unless self.respond_to?(method, true)
       @logger.warn("Not Implemented Operation: #{opname}")
       return
     end
