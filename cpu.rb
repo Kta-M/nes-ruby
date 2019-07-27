@@ -7,25 +7,6 @@ require './cpu_consts'
 
 # CPUクラス
 class Cpu
-  # レジスターの初期値
-  INIT_REGISTERS = {
-    A:  0x00,             # アキュムレータ
-    X:  0x00,             # インデックスレジスタ
-    Y:  0x00,             # インデックスレジスタ
-    P:  {                 # ステータスレジスタ
-      negative:  false,   # ネガティブ     : 演算結果のbit7が1の時にセット
-      overflow:  false,   # オーバーフロー : P演算結果がオーバーフローを起こした時にセット
-      reserved:  true,    # 予約済み       : 常にセットされている
-      break:     true,    # ブレークモード : BRK発生時にセット、IRQ発生時にクリア
-      decimal:   false,   # デシマルモード : 0:デフォルト、1:BCDモード (NESでは未実装)
-      interrupt: true,    # IRQ禁止        : 0:IRQ許可、1:IRQ禁止
-      zero:      false,   # ゼロ           : 演算結果が0の時にセット
-      carry:     false    # キャリー       : キャリー発生時にセット
-    },
-    SP: 0x01FD,           # スタックポインタ(実際は0x0100+8bit値)
-    PC: 0x0000            # プログラムカウンタ
-  }.freeze
-
   def initialize(bus, logger)
     @logger = logger
     @bus = bus
