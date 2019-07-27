@@ -29,3 +29,7 @@ Style/RedundantSelf:
 # 複数行のハッシュを書くときはvalueの先頭を揃える
 Layout/AlignHash:
   EnforcedColonStyle: "table"
+
+# 後置if/unlessができる場所は探さない
+Style/IfUnlessModifier:
+  Enabled: false
