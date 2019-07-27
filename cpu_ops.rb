@@ -4,6 +4,7 @@ require 'logger'
 require 'pry'
 
 # CPUクラスの命令セットを定義
+# rubocop:disable Metrics/ClassLength
 class Cpu
   private
 
@@ -267,9 +268,23 @@ class Cpu
   #----------------------------------------------------------------------------
   # ストア
   # STA (Store A to M)  A -> M
+  def exec_STA(operand, _mode)
+    __exec_ST(:A, operand)
+  end
+
   # STX (Store X to M)  X -> M
+  def exec_STX(operand, _mode)
+    __exec_ST(:X, operand)
+  end
+
   # STY (Store Y to M)  Y -> M
-  # flags: none
+  def exec_STY(operand, _mode)
+    __exec_ST(:Y, operand)
+  end
+
+  def __exec_ST(type, operand)
+    @bus.write(operand, @registers[type])
+  end
 
   #----------------------------------------------------------------------------
   # レジスタ間転送
@@ -311,3 +326,4 @@ class Cpu
     @registers[:P][:zero]     = val.zero?
   end
 end
+# rubocop:enable Metrics/ClassLength

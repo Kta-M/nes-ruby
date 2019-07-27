@@ -5,12 +5,14 @@ require 'pry'
 require './rom'
 require './cpu'
 require './cpu_bus'
+require './ppu'
 
 # エミュレータークラス
 class Nes
   def initialize(rom, logger)
     @logger = logger
-    @bus = CpuBus.new(nil, nil, nil, nil, rom.prg_rom, @logger)
+    @ppu = Ppu.new(@logger)
+    @bus = CpuBus.new(nil, @ppu, nil, nil, rom.prg_rom, @logger)
     @cpu = Cpu.new(@bus, @logger)
   end
 

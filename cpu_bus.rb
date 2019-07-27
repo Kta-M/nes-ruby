@@ -6,10 +6,10 @@ require 'pry'
 # CPUバスクラス
 class CpuBus
   # rubocop:disable Metrics/ParameterLists
-  def initialize(wram, ppu_reg, apu_io, pad, prg_rom, logger)
-    @logger = logger
+  def initialize(wram, ppu, apu_io, pad, prg_rom, logger)
+    @logger  = logger
     @wram    = wram
-    @ppu_reg = ppu_reg
+    @ppu     = ppu
     @apu_io  = apu_io
     @pad     = pad
     @prg_rom = prg_rom
@@ -24,7 +24,7 @@ class CpuBus
     __read(addr) + (__read(addr + 1) << 8)
   end
 
-  def write(addr)
+  def write(addr, data)
     __write(addr, data)
   end
 
@@ -43,7 +43,7 @@ class CpuBus
     when 0x0800..0x1FFF
       0
     when 0x2000..0x2007
-      0
+      @ppu.read_reg(addr - 0x2000)
     when 0x2008..0x3FFF
       0
     when 0x4000..0x401F
@@ -61,14 +61,14 @@ class CpuBus
   # rubocop:enable Metrics/CyclomaticComplexity
 
   # rubocop:disable Metrics/CyclomaticComplexity
-  def __write(addr, _data)
+  def __write(addr, data)
     case addr
     when 0x0000..0x07FF
       @logger.debug('Not Implemented')
     when 0x0800..0x1FFF
       @logger.debug('Not Implemented')
     when 0x2000..0x2007
-      @logger.debug('Not Implemented')
+      @ppu.write_reg(addr - 0x2000, data)
     when 0x2008..0x3FFF
       @logger.debug('Not Implemented')
     when 0x4000..0x401F
