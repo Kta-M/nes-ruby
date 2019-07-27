@@ -142,21 +142,50 @@ class Cpu
   #----------------------------------------------------------------------------
   # 条件分岐
   # BCC (Branch on C clear)
-  # Cフラグがクリアされていれば分岐します。
+  def exec_BCC(operand, _mode)
+    __exec_B__(:carry, false, operand)
+  end
+
   # BCS (Branch on C set)
-  # Cフラグがセットされていれば分岐します。
+  def exec_BCS(operand, _mode)
+    __exec_B__(:carry, true, operand)
+  end
+
   # BEQ (Branch on Z set (result equal))
-  # Zフラグがセットされていれば分岐します。
+  def exec_BEQ(operand, _mode)
+    __exec_B__(:zero, true, operand)
+  end
+
   # BNE (Branch on Z clear (result not equal))
-  # Zフラグがクリアされていれば分岐します。
+  def exec_BNE(operand, _mode)
+    __exec_B__(:zero, false, operand)
+  end
+
   # BVC (Branch on V clear)
-  # Vフラグがクリアされていれば分岐します。
+  def exec_BVC(operand, _mode)
+    __exec_B__(:overflow, false, operand)
+  end
+
   # BVS (Branch on V set)
-  # Vフラグがセットされていれば分岐します。
+  def exec_BVS(operand, _mode)
+    __exec_B__(:overflow, true, operand)
+  end
+
   # BPL (Branch on N clear (result plus))
-  # Nフラグがクリアされていれば分岐します。
+  def exec_BPL(operand, _mode)
+    __exec_B__(:negative, false, operand)
+  end
+
   # BMI (Branch on N set (result minus))
-  # Nフラグがセットされていれば分岐します。
+  def exec_BMI(operand, _mode)
+    __exec_B__(:negative, true, operand)
+  end
+
+  def __exec_B__(flag, cond, operand)
+    return if @registers[:P][flag] != cond
+
+    @registers[:PC] = operand
+  end
 
   #----------------------------------------------------------------------------
   # ビット検査
