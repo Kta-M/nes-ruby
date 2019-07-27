@@ -43,7 +43,8 @@ class Cpu
     operand = fetch_operand(param[:mode])
     exec(param[:op], operand, param[:mode])
 
-    @logger.debug("opcode: #{format('0x%04X', opcode)}, operand: #{operand}, param: #{param}")
+    output_op_log(opcode, operand, param)
+    sleep(1)
   end
 
   # リセット
@@ -79,5 +80,17 @@ class Cpu
       return
     end
     send(method, operand, mode)
+  end
+
+  #----------------------------------------------------------------------------
+  # [デバッグ用]実行した命令の情報をログに出す
+  def output_op_log(opcode, operand, param)
+    log = [
+      "opcode: #{format('0x%04X', opcode)}",
+      "opname: #{(param[:op] + '   ')[0, 4]}",
+      "operand: #{format('0x%04X', operand.to_i)}",
+      "mode: #{param[:mode]}"
+    ].join(', ')
+    @logger.debug(log)
   end
 end
