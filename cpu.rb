@@ -177,6 +177,6 @@ class Cpu
       @logger.warn("Not Implemented Operation: #{opname}")
       return
     end
-    send(method, oprand, mode)
+    send(method, operand, mode)
   end
 end
