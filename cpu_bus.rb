@@ -55,13 +55,13 @@ class CpuBus
     when 0x8000..0xBFFF, 0xC000..0xFFFF
       @prg_rom.read(addr - 0x8000)
     else
-      raise "Invalid Memory Access : #{'0x%08X' % addr}"
+      raise "Invalid Memory Access : #{format('0x%08X', addr)}"
     end
   end
   # rubocop:enable Metrics/CyclomaticComplexity
 
   # rubocop:disable Metrics/CyclomaticComplexity
-  def __write(addr, data)
+  def __write(addr, _data)
     case addr
     when 0x0000..0x07FF
       @logger.debug('Not Implemented')
@@ -78,9 +78,9 @@ class CpuBus
     when 0x6000..0x7FFF
       @logger.debug('Not Implemented')
     when 0x8000..0xBFFF, 0xC000..0xFFFF
-      raise "Invalid To Write : #{'0x%08X' % addr}"
+      raise "Invalid To Write : #{format('0x%08X', addr)}"
     else
-      raise "Invalid Memory Access : #{'0x%08X' % addr}"
+      raise "Invalid Memory Access : #{format('0x%08X', addr)}"
     end
   end
   # rubocop:enable Metrics/CyclomaticComplexity
