@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'logger'
+require 'pry'
 require './cpu_bus'
 require './cpu_consts'
 
