@@ -201,10 +201,36 @@ class Cpu
   # インクリメント、デクリメント
   # INC (Increment M by one)  M + 1 -> M
   # DEC (Decrement M by one)  M - 1 -> M
+
   # INX (Increment X by one)  X + 1 -> X
+  def exec_INX(_operand, _mode)
+    __exec_IN_(:X)
+  end
+
   # DEX (Decrement X by one)  X - 1 -> X
+  def exec_DEX(_operand, _mode)
+    __exec_DE_(:X)
+  end
+
   # INY (Increment Y by one)  Y + 1 -> Y
+  def exec_INY(_operand, _mode)
+    __exec_IN_(:Y)
+  end
+
   # DEY (Decrement Y by one)  Y - 1 -> Y
+  def exec_DEY(_operand, _mode)
+    __exec_DE_(:Y)
+  end
+
+  def __exec_IN_(type)
+    @registers[type] = (@registers[type] + 1) & 0xFF;
+    update_status_register_ng(@registers[type])
+  end
+
+  def __exec_DE_(type)
+    @registers[type] = (@registers[type] - 1) & 0xFF;
+    update_status_register_ng(@registers[type])
+  end
 
   #----------------------------------------------------------------------------
   # フラグ操作
