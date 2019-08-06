@@ -33,3 +33,7 @@ Layout/AlignHash:
 # 後置if/unlessができる場所は探さない
 Style/IfUnlessModifier:
   Enabled: false
+
+# 最後のif文の中身が2行以上であればガード節を使うよう警告
+GuardClause:
+  MinBodyLength: 2
