@@ -44,7 +44,8 @@ class Cpu
     exec(param[:op], operand, param[:mode])
 
     output_op_log(opcode, operand, param)
-    sleep(0.1)
+
+    param[:cycle]
   end
 
   # リセット

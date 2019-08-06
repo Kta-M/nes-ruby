@@ -20,7 +20,14 @@ class Nes
     @logger.info('Start emulation')
 
     loop do
-      @cpu.run
+      cycle = @cpu.run
+      # PPUはCPUの3倍の速度で動作する
+      @ppu.run(cycle * 3)
+
+      # 描画準備ができていたら画面を更新
+      if @ppu.ready?
+        # @renderer.render(@ppu.bg_data)
+      end
     end
   end
 end

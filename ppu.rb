@@ -5,6 +5,15 @@ require 'pry'
 
 # PPUクラス
 class Ppu
+  # 1ライン描画するために必要なサイクル数
+  LINE_CYCLES = 341
+  # 画面領域
+  WINDOW_WIDTH  = 265
+  WINDOW_HEIGHT = 240
+  WINDOW_HEIGHT_WITH_VBLANK = 262
+
+  attr_reader :bg_data
+
   def initialize(logger)
     @logger = logger
     @registers = Array.new(0x0008, 0)
@@ -15,6 +24,40 @@ class Ppu
     @ppuaddr_lower_flg = false
     # 書き込むPPUメモリ領域のアドレス
     @ppuaddr = 0x0000
+
+    # サイクルの積算値
+    @cycle = 0
+    # 描画中のライン
+    @line = 0
+  end
+
+  # 指定サイクル分だけ処理を実行
+  def run(cycle)
+    # 新しい画面の描画開始
+    if @line.zero?
+      @bg_data = []
+    end
+
+    @cycle += cycle
+    return if @cycle < LINE_CYCLES
+
+    @cycle -= LINE_CYCLES
+    @line += 1
+
+    # 8ラインごとに背景スライトとパレットのデータを格納
+    if @line <= WINDOW_HEIGHT && (@line % 8).zero?
+      @bg_data << build_8_lines_bg
+    end
+
+    # 1画面分の描画完了
+    if @line == WINDOW_HEIGHT_WITH_VBLANK
+      @line = 0
+    end
+  end
+
+  # 描画準備ができているか
+  def ready?
+    @line.zero? && @bg_data.size.positive?
   end
 
   #----------------------------------------------------------------------------
@@ -57,6 +100,12 @@ class Ppu
   #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   private
 
+  # 8ライン分の背景データを構築
+  def build_8_lines_bg
+    0
+  end
+
+  #----------------------------------------------------------------------------
   # 操作対象のPPUメモリ領域のアドレスを設定
   def update_ppuaddr(data)
     if @ppuaddr_lower_flg
