@@ -3,16 +3,23 @@
 require 'logger'
 require 'pry'
 
+# rubocop:disable Metrics/ClassLength
 # PPUクラス
 class Ppu
   # 1ライン描画するために必要なサイクル数
   LINE_CYCLES = 341
   # 画面領域
-  WINDOW_WIDTH  = 265
+  WINDOW_WIDTH  = 256
   WINDOW_HEIGHT = 240
   WINDOW_HEIGHT_WITH_VBLANK = 262
+  # タイルのサイズ
+  TILE_SIZE = 8
+  # 属性テーブルのブロックサイズ
+  BLOCK_SIZE = 16
 
   attr_reader :bg_data
+
+  #----------------------------------------------------------------------------
 
   def initialize(logger)
     @logger = logger
@@ -45,8 +52,8 @@ class Ppu
     @line += 1
 
     # 8ラインごとに背景スライトとパレットのデータを格納
-    if @line <= WINDOW_HEIGHT && (@line % 8).zero?
-      @bg_data << build_8_lines_bg
+    if @line <= WINDOW_HEIGHT && (@line % TILE_SIZE).zero?
+      @bg_data << build_tile_row
     end
 
     # 1画面分の描画完了
@@ -100,9 +107,15 @@ class Ppu
   #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   private
 
-  # 8ライン分の背景データを構築
-  def build_8_lines_bg
-    0
+  # 横一列タイル分の背景データを構築
+  def build_tile_row
+    tile_y = (@line / TILE_SIZE) - 1
+    (WINDOW_WIDTH / TILE_SIZE).times.map do |tile_x|
+      {
+        sprite_id:  read_sprite_id(0, tile_x, tile_y),
+        palette_id: read_palette_id(0, tile_x, tile_y)
+      }
+    end
   end
 
   #----------------------------------------------------------------------------
@@ -150,9 +163,32 @@ class Ppu
   # 0x0FC0-0x0FFF | 0x0040 | 属性テーブル3
   # 0x1000-0x1EFF | -      | 0x0000-0x0EFFのミラー
 
+  # スプライトID読み込み
+  def read_sprite_id(table_idx, tile_x, tile_y)
+    addr = (tile_y * (WINDOW_WIDTH / TILE_SIZE) + tile_x) + (table_idx * 0x0400)
+    read_vram(addr)
+  end
+
+  # パレットID読み込み
+  def read_palette_id(table_idx, tile_x, tile_y)
+    # 属性テーブルのブロックインデックス
+    block_x = tile_x / (BLOCK_SIZE / TILE_SIZE)
+    block_y = tile_y / (BLOCK_SIZE / TILE_SIZE)
+    block_idx = block_y * (WINDOW_WIDTH / BLOCK_SIZE) + block_x
+
+    # 2ビットずつデータを格納している
+    addr = (block_idx / 4) + (table_idx * 0x0400) + 0x03C0
+    (read_vram(addr) >> (block_idx % 4 * 2)) & 0x03
+  end
+
+  # VRAMから読み込み
+  def read_vram(addr)
+    @vram[addr]
+  end
+
   # VRAMに書き込み
   def write_vram(addr, data)
-    @vram[addr % 0xFF] = data
+    @vram[addr] = data
   end
 
   #----------------------------------------------------------------------------
@@ -168,4 +204,38 @@ class Ppu
     target_addr = (addr % 0x04).zero? ? addr & 0x0F : addr
     @palette[target_addr] = data
   end
+
+  #----------------------------------------------------------------------------
+  # デバッグ用
+
+  # ネームテーブル表示
+  def debug_print_name_table(table_idx)
+    table_bgn = 0x0400 * table_idx
+    table_end = table_bgn + 0x03BF
+    @vram[table_bgn..table_end].each_slice(WINDOW_WIDTH / TILE_SIZE) do |ary|
+      p ary.map { |v| format('%02x', v) }.join(' ')
+    end
+  end
+
+  # rubocop:disable Metrics/AbcSize
+  # 属性テーブル表示
+  def debug_print_attr_table(table_idx)
+    table_bgn = 0x0400 * table_idx + 0x03C0
+    table_end = table_bgn + 0x003F
+    @vram[table_bgn..table_end].each_slice(WINDOW_WIDTH / BLOCK_SIZE / 4) do |ary|
+      2.times do
+        p ary.map { |v|
+          a = [
+            format('%02x', (v >> 0) & 0x03),
+            format('%02x', (v >> 2) & 0x03),
+            format('%02x', (v >> 4) & 0x03),
+            format('%02x', (v >> 6) & 0x03)
+          ]
+          a.zip(a)
+        }.flatten.join(' ')
+      end
+    end
+  end
+  # rubocop:enable Metrics/AbcSize
 end
+# rubocop:enable Metrics/ClassLength
