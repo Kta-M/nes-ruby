@@ -8,14 +8,28 @@ require 'pry'
 class Ppu
   # 1ライン描画するために必要なサイクル数
   LINE_CYCLES = 341
+
   # 画面領域
   WINDOW_WIDTH  = 256
   WINDOW_HEIGHT = 240
   WINDOW_HEIGHT_WITH_VBLANK = 262
+
   # タイルのサイズ
   TILE_SIZE = 8
   # 属性テーブルのブロックサイズ
   BLOCK_SIZE = 16
+  # ブロック内の縦横タイル数
+  BLOCK_TILES_X = BLOCK_SIZE / TILE_SIZE
+  BLOCK_TILES_Y = BLOCK_SIZE / TILE_SIZE
+
+  # 属性テーブルの1Byteが格納しているパレット情報の縦横サイズ(2bitずつ)
+  # ---------
+  # | 0 | 1 |
+  # ---------
+  # | 2 | 3 |
+  # ---------
+  ATTR_BLOCKS_X = 2
+  ATTR_BLOCKS_Y = 2
 
   attr_reader :bg_data
 
@@ -171,14 +185,18 @@ class Ppu
 
   # パレットID読み込み
   def read_palette_id(table_idx, tile_x, tile_y)
-    # 属性テーブルのブロックインデックス
-    block_x = tile_x / (BLOCK_SIZE / TILE_SIZE)
-    block_y = tile_y / (BLOCK_SIZE / TILE_SIZE)
-    block_idx = block_y * (WINDOW_WIDTH / BLOCK_SIZE) + block_x
+    addr = (
+      (tile_x / (BLOCK_TILES_X * ATTR_BLOCKS_X)) +
+      (tile_y / (BLOCK_TILES_Y * ATTR_BLOCKS_Y)) * (WINDOW_WIDTH / BLOCK_SIZE / ATTR_BLOCKS_X)
+    ) + (table_idx * 0x0400) + 0x03C0
 
-    # 2ビットずつデータを格納している
-    addr = (block_idx / 4) + (table_idx * 0x0400) + 0x03C0
-    (read_vram(addr) >> (block_idx % 4 * 2)) & 0x03
+    # 読み出したByteデータの中の該当ブロックの2bitの位置
+    shift = (
+      ((tile_x % (BLOCK_TILES_X * ATTR_BLOCKS_X)) / ATTR_BLOCKS_X) +
+      ((tile_y % (BLOCK_TILES_Y * ATTR_BLOCKS_Y)) / ATTR_BLOCKS_Y) * ATTR_BLOCKS_X
+    ) * 2
+
+    (read_vram(addr) >> shift) & 0x03
   end
 
   # VRAMから読み込み
