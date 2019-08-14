@@ -6,6 +6,7 @@ require './rom'
 require './cpu'
 require './cpu_bus'
 require './ppu'
+require './display'
 
 # エミュレータークラス
 class Nes
@@ -14,6 +15,7 @@ class Nes
     @ppu = Ppu.new(rom.chr_rom, @logger)
     @bus = CpuBus.new(nil, @ppu, nil, nil, rom.prg_rom, @logger)
     @cpu = Cpu.new(@bus, @logger)
+    @display = Display.new(@logger)
   end
 
   def run
@@ -26,7 +28,7 @@ class Nes
 
       # 描画準備ができていたら画面を更新
       if @ppu.ready?
-        # @renderer.render(@ppu.bg_data)
+        @display.render(@ppu.screen)
       end
     end
   end
