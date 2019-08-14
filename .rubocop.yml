@@ -34,6 +34,6 @@ Layout/AlignHash:
 Style/IfUnlessModifier:
   Enabled: false
 
-# 最後のif文の中身が2行以上であればガード節を使うよう警告
-GuardClause:
-  MinBodyLength: 2
+# ガード節の警告を無効に
+Style/GuardClause:
+  Enabled: false
