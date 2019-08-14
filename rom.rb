@@ -103,8 +103,8 @@ class Rom
       sprite_data = @rom_data[sprite_pos, sprite_size]
 
       height.times.map do |col|
-        upper_bits = sprite_data[col].ord.split('').format('%08b')
-        lower_bits = sprite_data[col + height].ord.split('').format('%08b')
+        upper_bits = format('%08b', sprite_data[col].ord).split('')
+        lower_bits = format('%08b', sprite_data[col + height].ord).split('')
         upper_bits.zip(lower_bits).map { |a| a.join.to_i(2) }
       end
     end

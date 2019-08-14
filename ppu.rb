@@ -10,9 +10,9 @@ class Ppu
   LINE_CYCLES = 341
 
   # 画面領域
-  WINDOW_WIDTH  = 256
-  WINDOW_HEIGHT = 240
-  WINDOW_HEIGHT_WITH_VBLANK = 262
+  SCREEN_WIDTH  = 256
+  SCREEN_HEIGHT = 240
+  SCREEN_HEIGHT_WITH_VBLANK = 262
 
   # タイルのサイズ
   TILE_SIZE = 8
@@ -31,11 +31,12 @@ class Ppu
   ATTR_BLOCKS_X = 2
   ATTR_BLOCKS_Y = 2
 
-  attr_reader :bg_data
+  attr_reader :screen
 
   #----------------------------------------------------------------------------
 
-  def initialize(logger)
+  def initialize(chr_rom, logger)
+    @chr_rom = chr_rom
     @logger = logger
     @registers = Array.new(0x0008, 0)
     @vram      = Array.new(0x1000, 0)
@@ -50,6 +51,8 @@ class Ppu
     @cycle = 0
     # 描画中のライン
     @line = 0
+    # 背景画像描画用データ
+    @bg_data = []
   end
 
   # 指定サイクル分だけ処理を実行
@@ -57,6 +60,7 @@ class Ppu
     # 新しい画面の描画開始
     if @line.zero?
       @bg_data = []
+      @screen = nil
     end
 
     @cycle += cycle
@@ -66,19 +70,20 @@ class Ppu
     @line += 1
 
     # 8ラインごとに背景スライトとパレットのデータを格納
-    if @line <= WINDOW_HEIGHT && (@line % TILE_SIZE).zero?
+    if @line <= SCREEN_HEIGHT && (@line % TILE_SIZE).zero?
       @bg_data << build_tile_row
     end
 
     # 1画面分の描画完了
-    if @line == WINDOW_HEIGHT_WITH_VBLANK
+    if @line == SCREEN_HEIGHT_WITH_VBLANK
       @line = 0
+      build_screen
     end
   end
 
   # 描画準備ができているか
   def ready?
-    @line.zero? && @bg_data.size.positive?
+    @line.zero? && !@screen.nil?
   end
 
   #----------------------------------------------------------------------------
@@ -124,11 +129,31 @@ class Ppu
   # 横一列タイル分の背景データを構築
   def build_tile_row
     tile_y = (@line / TILE_SIZE) - 1
-    (WINDOW_WIDTH / TILE_SIZE).times.map do |tile_x|
+    (SCREEN_WIDTH / TILE_SIZE).times.map do |tile_x|
       {
         sprite_id:  read_sprite_id(0, tile_x, tile_y),
         palette_id: read_palette_id(0, tile_x, tile_y)
       }
+    end
+  end
+
+  # スクリーン表示データを構築
+  def build_screen
+    @screen = Array.new(SCREEN_HEIGHT) { [] }
+    (SCREEN_HEIGHT / TILE_SIZE).times do |tile_y|
+      (SCREEN_WIDTH / TILE_SIZE).times do |tile_x|
+        data    = @bg_data[tile_y][tile_x]
+        sprite  = @chr_rom.sprite(data[:sprite_id])
+        TILE_SIZE.times do |pixel_y|
+          TILE_SIZE.times do |pixel_x|
+            x = TILE_SIZE * tile_x + pixel_x
+            y = TILE_SIZE * tile_y + pixel_y
+            palette_addr = data[:palette_id] + sprite[pixel_y][pixel_x]
+            color = COLORS[read_palette(palette_addr)]
+            @screen[y][x] = color
+          end
+        end
+      end
     end
   end
 
@@ -179,7 +204,7 @@ class Ppu
 
   # スプライトID読み込み
   def read_sprite_id(table_idx, tile_x, tile_y)
-    addr = (tile_y * (WINDOW_WIDTH / TILE_SIZE) + tile_x) + (table_idx * 0x0400)
+    addr = (tile_y * (SCREEN_WIDTH / TILE_SIZE) + tile_x) + (table_idx * 0x0400)
     read_vram(addr)
   end
 
@@ -187,7 +212,7 @@ class Ppu
   def read_palette_id(table_idx, tile_x, tile_y)
     addr = (
       (tile_x / (BLOCK_TILES_X * ATTR_BLOCKS_X)) +
-      (tile_y / (BLOCK_TILES_Y * ATTR_BLOCKS_Y)) * (WINDOW_WIDTH / BLOCK_SIZE / ATTR_BLOCKS_X)
+      (tile_y / (BLOCK_TILES_Y * ATTR_BLOCKS_Y)) * (SCREEN_WIDTH / BLOCK_SIZE / ATTR_BLOCKS_X)
     ) + (table_idx * 0x0400) + 0x03C0
 
     # 読み出したByteデータの中の該当ブロックの2bitの位置
@@ -217,6 +242,19 @@ class Ppu
   # 0x0010-0x001F : スプライト用パレット(4色x4)
   #                 各パレットの先頭は透明色扱い, かつ値は背景用パレットの先頭のミラー
 
+  # パレットを読み込み
+  def read_palette(addr)
+    target_addr = case addr
+                  when 0x10, 0x14, 0x18, 0x1C
+                    addr - 0x10
+                  when 0x04, 0x08, 0x0C
+                    0x00
+                  else
+                    addr
+                  end
+    @palette[target_addr]
+  end
+
   # パレットに書き込み
   def write_palette(addr, data)
     target_addr = (addr % 0x04).zero? ? addr & 0x0F : addr
@@ -230,7 +268,7 @@ class Ppu
   def debug_print_name_table(table_idx)
     table_bgn = 0x0400 * table_idx
     table_end = table_bgn + 0x03BF
-    @vram[table_bgn..table_end].each_slice(WINDOW_WIDTH / TILE_SIZE) do |ary|
+    @vram[table_bgn..table_end].each_slice(SCREEN_WIDTH / TILE_SIZE) do |ary|
       p ary.map { |v| format('%02x', v) }.join(' ')
     end
   end
@@ -240,7 +278,7 @@ class Ppu
   def debug_print_attr_table(table_idx)
     table_bgn = 0x0400 * table_idx + 0x03C0
     table_end = table_bgn + 0x003F
-    @vram[table_bgn..table_end].each_slice(WINDOW_WIDTH / BLOCK_SIZE / 4) do |ary|
+    @vram[table_bgn..table_end].each_slice(SCREEN_WIDTH / BLOCK_SIZE / 4) do |ary|
       2.times do
         p ary.map { |v|
           a = [

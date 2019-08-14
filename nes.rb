@@ -11,7 +11,7 @@ require './ppu'
 class Nes
   def initialize(rom, logger)
     @logger = logger
-    @ppu = Ppu.new(@logger)
+    @ppu = Ppu.new(rom.chr_rom, @logger)
     @bus = CpuBus.new(nil, @ppu, nil, nil, rom.prg_rom, @logger)
     @cpu = Cpu.new(@bus, @logger)
   end
